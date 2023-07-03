@@ -38,7 +38,15 @@ func (user *User) Offline() {
 }
 
 func (user *User) DoMessage(msg string) {
-	user.server.BroadCast(user, msg)
+	if msg == "who" {
+		user.server.mapLock.Lock()
+		for _, user := range user.server.OnlineMap {
+			user.server.BroadCast(user, "["+user.Addr+"]：在线\n")
+		}
+		user.server.mapLock.Unlock()
+	} else {
+		user.server.BroadCast(user, msg)
+	}
 }
 
 func (user *User) ListenMessage() {
