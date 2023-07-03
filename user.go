@@ -49,11 +49,28 @@ func (user *User) DoMessage(msg string) {
 		user.server.mapLock.Unlock()
 	} else if strings.HasPrefix(msg, "rename|") {
 		msg = strings.Replace(msg, "rename|", "", 0)
-		user.server.mapLock.Lock()
-		delete(user.server.OnlineMap, user.Name)
-		user.Name = msg
-		user.server.OnlineMap[msg] = user
-		user.server.mapLock.Unlock()
+		if _, ok := user.server.OnlineMap[msg]; ok {
+			user.SendMessage("用户名已经被占用\n")
+		} else {
+			user.server.mapLock.Lock()
+			delete(user.server.OnlineMap, user.Name)
+			user.Name = msg
+			user.server.OnlineMap[msg] = user
+			user.server.mapLock.Unlock()
+			user.SendMessage("用户名更新成功，新的用户名是：" + msg + "\n")
+		}
+	} else if strings.HasPrefix(msg, "to|") {
+		arr := strings.Split(msg, "|")
+		if len(arr) == 3 {
+			toName := arr[1]
+			if toUser, ok := user.server.OnlineMap[toName]; ok {
+				toUser.SendMessage(user.Name + "对你说：" + arr[2] + "\n")
+			} else {
+				user.SendMessage("用户不在线\n")
+			}
+		} else {
+			user.SendMessage("输入的格式不正确，正确输入如下：to|张三|需要发送的内容\n")
+		}
 	} else {
 		user.server.BroadCast(user, msg)
 	}
