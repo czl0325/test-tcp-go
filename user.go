@@ -59,6 +59,10 @@ func (user *User) DoMessage(msg string) {
 	}
 }
 
+func (user *User) SendMessage(msg string) {
+	user.Conn.Write([]byte(msg))
+}
+
 func (user *User) ListenMessage() {
 	for {
 		msg := <-user.C
